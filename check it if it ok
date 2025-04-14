@@ -1,1 +1,22 @@
+Section 2c: Reflection on Learning Applied to Experience
+Through completing “A Practical Introduction to Clouds” and “Ultimate AWS Certified Cloud Practitioner CLF-C02 (2025)” on Udemy, I developed a clear understanding of AWS architecture, DevOps workflows, security best practices, and how to operationalize cloud-native services. I directly applied these concepts in my role as an Automation Tester by designing and maintaining a production-grade CI/CD pipeline using GitLab, integrated tightly with AWS services to automate regression and smoke testing.
 
+The CI/CD pipeline I built is configured via .gitlab-ci.yml, where I implemented multiple stages including prepare, build, test, and deploy. Each job uses a specific Docker image (e.g., cypress/browsers:node-18.12.0-chrome-106, maven:3.9-openjdk-17, or python:3.11-slim) defined using the image: keyword, enabling environment consistency across executions. This eliminates local environment issues and ensures deterministic builds aligned with containerization principles covered in both courses.
+
+I hosted GitLab Runners on EC2 instances using the Docker executor. These instances are part of an Auto Scaling Group (ASG) with lifecycle hooks managed by Lambda and CloudWatch Events for dynamic scaling based on CI load. I applied concepts like elasticity and decoupled architecture from the AWS course, which allowed the runners to scale up during peak testing windows and terminate gracefully post-job completion to optimize cost and performance.
+
+Each test cycle — both daily scheduled and event-triggered (via GitLab’s only: [schedules, web] keyword) — initiates E2E automation using tools like Selenium, Postman (via Newman CLI), and JUnit. The test suites are parameterized to run on multiple environments, using GitLab’s CI/CD variables: block and environment-specific config files stored in S3.
+
+I applied IAM concepts by assigning the EC2 runners an instance profile with restricted permissions to access S3, CloudWatch, and Secrets Manager. Secrets (e.g., API keys, DB credentials) are retrieved at runtime using the AWS CLI and injected as environment variables securely within the job context. This follows the principle of least privilege and adheres to best practices for secrets management — an area heavily emphasized in the CLF-C02 course.
+
+Post-test, I implemented log and artifact management by uploading JUnit reports, coverage results, screenshots, and HAR files to versioned S3 buckets. These artifacts are timestamped, categorized by GitLab pipeline ID, and used for debugging and reporting. I also used artifacts: and cache: in GitLab to optimize job execution time, reducing redundancy across jobs.
+
+Monitoring and observability were implemented using Amazon CloudWatch. I configured metric filters and dashboards to track test execution times, error rates, and instance health. Additionally, alarms are set for pipeline failures using SNS to notify relevant Slack channels and email groups. This aligns with the operational excellence pillar of the AWS Well-Architected Framework discussed in both courses.
+
+The impact of this implementation was substantial. It reduced manual regression efforts by ~70%, increased deployment frequency by supporting automated test validation per environment push, and ensured compliance with QA gates before production releases. This has empowered the QA team to shift-left and integrate testing earlier in the development lifecycle.
+
+Challenges I encountered included test flakiness due to inconsistent network latency and environment drift. I mitigated this by running isolated test environments using Docker Compose and pre-baked AMIs with all dependencies. Additionally, CloudWatch logs helped identify intermittent API timeout patterns, which were resolved via retries and better wait strategies in Selenium.
+
+If I were to redo the project, I would integrate AWS CodePipeline and CodeBuild to reduce the management overhead of EC2 runners and enhance native service integration. I'd also incorporate Terraform for infrastructure-as-code to manage S3, IAM, and networking resources more consistently.
+
+In summary, these courses bridged my theoretical understanding with practical application, enabling me to deliver a scalable, secure, and automated testing framework on AWS using GitLab CI/CD. It not only elevated the QA function but also aligned our delivery practices with DevOps and cloud-native principles.
