@@ -11,7 +11,7 @@ for %%F in ("%FEATURE_DIR%\*.feature") do (
     echo Processing %%~nxF
     powershell -NoLogo -NoProfile -Command ^
         "Get-Content '%%F' | ForEach-Object { ^
-            if ($_ -match 'Scenario Outline\s*:\s*(.+)') { ^
+            if ($_ -match '^\s*Scenario Outline\s*:\s*(.+)$') { ^
                 $scenario = $matches[1].Trim() ^
                 Add-Content '%OUTPUT%' ('%%~nxF' + ',' + $scenario) ^
             } ^
