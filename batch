@@ -1,0 +1,26 @@
+@echo off
+setlocal enabledelayedexpansion
+
+REM Change this to your features folder
+set "FEATURE_DIR=C:\path\to\features"
+set "OUTPUT=features.csv"
+
+echo Feature File,Scenario Outline,Step > "%OUTPUT%"
+
+for %%F in ("%FEATURE_DIR%\*.feature") do (
+    echo Processing %%~nxF
+    powershell -NoLogo -NoProfile -Command ^
+        "(Get-Content '%%F') | ForEach-Object { $_ } | ForEach-Object {
+            if ($_ -match 'Scenario Outline\s*:\s*(.+)') {
+                $scenario = $matches[1]
+            }
+            elseif ($_ -match '^\s+(Given|When|Then|And|But)\s+(.+)') {
+                $step = $matches[0].Trim()
+                Add-Content '%OUTPUT%' ('%%~nxF' + ',' + $scenario + ',' + $step)
+            }
+        }"
+)
+
+echo.
+echo ✅ Export complete! File saved as %OUTPUT%
+pause
