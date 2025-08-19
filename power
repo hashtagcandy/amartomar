@@ -1,0 +1,16 @@
+$featureDir = "C:\path\to\features"
+$output = "ScenarioOutlines.csv"
+
+"Feature File,Scenario Outline" | Out-File -FilePath $output -Encoding UTF8
+
+Get-ChildItem -Path $featureDir -Filter *.feature | ForEach-Object {
+    $file = $_.Name
+    Get-Content $_.FullName | ForEach-Object {
+        if ($_ -match 'Scenario Outline:\s*(.+)') {
+            $scenario = $matches[1].Trim()
+            "$file,$scenario" | Out-File -FilePath $output -Append -Encoding UTF8
+        }
+    }
+}
+
+Write-Host "✅ Export complete! See $output"
