@@ -1,0 +1,81 @@
+public void copyData(
+        String sourceFields,
+        String sourceId,
+        String sourceFile,
+        String targetFields,
+        String targetId,
+        String targetFile) {
+
+    try {
+
+        // ---------- READ SOURCE ----------
+        Map<String, String> sourceValues = new HashMap<>();
+
+        Workbook sourceWb = WorkbookFactory.create(new FileInputStream(sourceFile));
+        Sheet sourceSheet = sourceWb.getSheetAt(0);
+
+        Row sourceHeader = sourceSheet.getRow(0);
+        int sourceIdRowIndex = findRowIndex(sourceSheet, sourceId);
+
+        Row sourceRow = sourceSheet.getRow(sourceIdRowIndex);
+
+        String[] srcFields = sourceFields.split(",");
+
+        for (String field : srcFields) {
+            int colIndex = findColumnIndex(sourceHeader, field);
+            sourceValues.put(field, sourceRow.getCell(colIndex).getStringCellValue());
+        }
+
+        sourceWb.close();
+
+        // ---------- WRITE TO TARGET ----------
+        Workbook targetWb = WorkbookFactory.create(new FileInputStream(targetFile));
+        Sheet targetSheet = targetWb.getSheetAt(0);
+
+        Row targetHeader = targetSheet.getRow(0);
+        int targetRowIndex = findRowIndex(targetSheet, targetId);
+
+        Row targetRow = targetSheet.getRow(targetRowIndex);
+
+        String[] tgtFields = targetFields.split(",");
+
+        for (int i = 0; i < tgtFields.length; i++) {
+            int colIndex = findColumnIndex(targetHeader, tgtFields[i]);
+            Cell cell = targetRow.getCell(colIndex, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+            cell.setCellValue(sourceValues.get(srcFields[i]));
+        }
+
+        FileOutputStream fos = new FileOutputStream(targetFile);
+        targetWb.write(fos);
+
+        fos.close();
+        targetWb.close();
+
+    } catch (Exception e) {
+        throw new RuntimeException("Failed to copy Excel test data", e);
+    }
+}
+
+
+
+
+
+
+private int findRowIndex(Sheet sheet, String id) {
+    for (Row row : sheet) {
+        if (row.getRowNum() == 0) continue;
+        if (row.getCell(0).getStringCellValue().equals(id)) {
+            return row.getRowNum();
+        }
+    }
+    throw new RuntimeException("ID not found: " + id);
+}
+
+private int findColumnIndex(Row header, String columnName) {
+    for (Cell cell : header) {
+        if (cell.getStringCellValue().equalsIgnoreCase(columnName)) {
+            return cell.getColumnIndex();
+        }
+    }
+    throw new RuntimeException("Column not found: " + columnName);
+}
