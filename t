@@ -36,3 +36,19 @@ public class CsvReader {
         return devices;
     }
 }
+
+@DataProvider(name = "devices", parallel = true)
+public Object[][] getDevices() {
+
+    List<Map<String, String>> devices =
+        CsvConfigReader.getAllRunEnabledDevices();
+
+    Object[][] data = new Object[devices.size()][1];
+
+    for (int i = 0; i < devices.size(); i++) {
+        data[i][0] = devices.get(i);
+    }
+
+    return data;
+}
+
