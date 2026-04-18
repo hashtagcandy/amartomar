@@ -67,3 +67,5 @@ public class TestRunner extends AbstractTestNGCucumberTests {
         super.runScenario(pickle, feature);
     }
 }
+
+new UiSelector().className("android.widget.Button").textMatches("(?i)(ok|create.*)")
